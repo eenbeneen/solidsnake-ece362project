@@ -68,7 +68,7 @@ void move(SnakePart* s) {
 void grow(SnakePart* head) {
     SnakePart* tail = head;
     while (tail->next != NULL)
-        tail = head->next;
+        tail = tail->next;
     SnakePart newTail = {tail->xpos, tail->ypos, tail->dir, NULL};
     tail->next = &newTail;
 }

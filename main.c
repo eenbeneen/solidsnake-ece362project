@@ -63,6 +63,23 @@ void move(SnakePart* s) {
     
 }
 
+/*  Keypad functions. Could use the ones from lab
+void init_outputs() {
+    // fill in
+    *intialize gpio output for each pin
+}
+
+void init_inputs() {
+    // fill in
+    *intialize gpio input for each pin
+}
+
+void init_keypad() {
+    // fill in
+    
+}
+*/
+
 //Adds one part to the tail of the snake
 //head = snake head pointer
 void grow(SnakePart* head) {
@@ -75,6 +92,11 @@ void grow(SnakePart* head) {
 
 int main() {
 
+    /*  Intialize keypad
+    init_outputs();
+    init_inputs();
+    init_keypad();
+    */
     
     return 0;
 }

@@ -1,5 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "pico/stdlib.h"
+#include "hardware/xosc.h"
+#include "pico/multicore.h"
+
+
 
 #define X_MAX 31
 #define Y_MAX 31
@@ -10,6 +15,9 @@
 #define SNAKEPART_DIR_LEFT 2
 #define SNAKEPART_DIR_DOWN 3
 
+const char keymap[16] = "DCBA#9630852*741";
+char key = '\0';
+int col = 0;
 
 typedef struct SnakePart {
     int xpos;
@@ -63,22 +71,84 @@ void move(SnakePart* s) {
     
 }
 
-/*  Keypad functions. Could use the ones from lab
+
 void init_outputs() {
     // fill in
-    *intialize gpio output for each pin
+    for(int i = 22; i <26; i++ ) {
+        uint32_t mask = 1u << (i);
+        sio_hw->gpio_oe_set = mask;
+        hw_write_masked(&pads_bank0_hw->io[i],
+                   PADS_BANK0_GPIO0_IE_BITS,
+                   PADS_BANK0_GPIO0_IE_BITS | PADS_BANK0_GPIO0_OD_BITS
+        );
+        sio_hw->gpio_clr = mask;
+        io_bank0_hw->io[i].ctrl = GPIO_FUNC_SIO << IO_BANK0_GPIO0_CTRL_FUNCSEL_LSB;
+        hw_clear_bits(&pads_bank0_hw->io[i], PADS_BANK0_GPIO0_ISO_BITS);
+    }
 }
 
 void init_inputs() {
     // fill in
-    *intialize gpio input for each pin
+
+   
+        uint32_t mask = 1u << (21);
+        sio_hw->gpio_oe_clr = mask;
+        hw_write_masked(&pads_bank0_hw->io[21],
+                   PADS_BANK0_GPIO0_IE_BITS,
+                   PADS_BANK0_GPIO0_IE_BITS | PADS_BANK0_GPIO0_OD_BITS
+                );
+
+
+        io_bank0_hw->io[21].ctrl = GPIO_FUNC_SIO << IO_BANK0_GPIO0_CTRL_FUNCSEL_LSB;
+
+        hw_clear_bits(&pads_bank0_hw->io[21], PADS_BANK0_GPIO0_ISO_BITS);
+
+        mask = 1u << (26);
+        sio_hw->gpio_oe_clr = mask;
+        hw_write_masked(&pads_bank0_hw->io[26],
+                   PADS_BANK0_GPIO0_IE_BITS,
+                   PADS_BANK0_GPIO0_IE_BITS | PADS_BANK0_GPIO0_OD_BITS
+                );
+
+        io_bank0_hw->io[26].ctrl = GPIO_FUNC_SIO << IO_BANK0_GPIO0_CTRL_FUNCSEL_LSB;
+
+        hw_clear_bits(&pads_bank0_hw->io[26], PADS_BANK0_GPIO0_ISO_BITS);
+    
+
 }
 
 void init_keypad() {
     // fill in
-    
+
+    for (int pin = 2; pin <= 5; pin++) {
+        uint32_t mask = 1u << pin;
+        sio_hw->gpio_oe_clr = mask;
+
+        hw_write_masked(&pads_bank0_hw->io[pin],
+                        PADS_BANK0_GPIO0_IE_BITS,
+                        PADS_BANK0_GPIO0_IE_BITS | PADS_BANK0_GPIO0_OD_BITS);
+
+        io_bank0_hw->io[pin].ctrl = GPIO_FUNC_SIO << IO_BANK0_GPIO0_CTRL_FUNCSEL_LSB;
+
+        hw_clear_bits(&pads_bank0_hw->io[pin], PADS_BANK0_GPIO0_ISO_BITS);
+    }
+
+    for (int pin = 6; pin <= 9; pin++) {
+        uint32_t mask = 1u << pin;
+        sio_hw->gpio_oe_set = mask;
+
+        hw_write_masked(&pads_bank0_hw->io[pin],
+                        PADS_BANK0_GPIO0_IE_BITS,
+                        PADS_BANK0_GPIO0_IE_BITS | PADS_BANK0_GPIO0_OD_BITS);
+
+        sio_hw->gpio_clr = mask;
+
+        io_bank0_hw->io[pin].ctrl = GPIO_FUNC_SIO << IO_BANK0_GPIO0_CTRL_FUNCSEL_LSB;
+
+        hw_clear_bits(&pads_bank0_hw->io[pin], PADS_BANK0_GPIO0_ISO_BITS);
+    }
+
 }
-*/
 
 //Adds one part to the tail of the snake
 //head = snake head pointer
@@ -92,11 +162,11 @@ void grow(SnakePart* head) {
 
 int main() {
 
-    /*  Intialize keypad
+    
     init_outputs();
     init_inputs();
     init_keypad();
-    */
+    
     
     return 0;
 }

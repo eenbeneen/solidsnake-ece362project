@@ -85,7 +85,7 @@ void move(SnakePart* s) {
     
 }
 
-
+/*
 void init_outputs() {
     // fill in
     for(int i = 22; i <26; i++ ) {
@@ -162,7 +162,7 @@ void init_keypad() {
         hw_clear_bits(&pads_bank0_hw->io[pin], PADS_BANK0_GPIO0_ISO_BITS);
     }
 
-}
+}*/
 
 //Adds one part to the tail of the snake
 //head = snake head pointer
@@ -185,14 +185,30 @@ void dispMessage() {
 }
 
 int main() {
-    stdio_init_all();
+    //stdio_init_all();
     
     // init_outputs();
     // init_inputs();
     // init_keypad();
-    printf("Hello");
+    //printf("Hello");
+    //matrix_init();
+    //dispMessage();
+
+    stdio_init_all();
+
     matrix_init();
-    dispMessage();
+
+    // Draw a simple pattern: top row green, middle row red, bottom row blue
+    for (int x = 0; x < MATRIX_WIDTH; x++) {
+        matrix_set_pixel(x, 0, 0, 1, 0);          // row 0 green
+        matrix_set_pixel(x, 15, 1, 0, 0);         // row 15 red
+        matrix_set_pixel(x, 31, 0, 0, 1);         // row 31 blue
+    }
+
+    while (1) {
+        matrix_refresh_once();
+        // No sleeps here: we want to refresh as fast as possible
+    }
     
     
     return 0;

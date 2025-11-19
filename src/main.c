@@ -200,7 +200,7 @@ int main() {
 
     // Draw a simple pattern: top row green, middle row red, bottom row blue
     for (int x = 0; x < MATRIX_WIDTH; x++) {
-        matrix_set_pixel(x, 0, 0, 1, 0);          // row 0 green
+        matrix_set_pixel(x, 0, 1, 1, 1);          // row 0 green
         matrix_set_pixel(x, 15, 1, 0, 0);         // row 15 red
         matrix_set_pixel(x, 31, 0, 0, 1);         // row 31 blue
     }

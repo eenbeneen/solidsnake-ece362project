@@ -17,7 +17,7 @@
 // gpio 36 is LAT
 // gpio 37 is OE
 
-#define PIN_R1   25
+#define PIN_R1   38
 #define PIN_G1   26
 #define PIN_B1   27
 #define PIN_R2   28
@@ -72,11 +72,11 @@ void matrix_init(void) {
     gpio_put(PIN_OE, 1);
 
     matrix_clear();
-    printf("Matrix initialized.\n");
 }
 
 void matrix_clear(void) {
     memset(framebuffer, 0, sizeof(framebuffer));
+    matrix_refresh_once();
 }
 
 void matrix_set_pixel(int x, int y, uint8_t r, uint8_t g, uint8_t b) {
@@ -101,7 +101,6 @@ void matrix_refresh_once(void) {
         // Turn off LEDs while we shift data
         gpio_put(PIN_OE, 1);
 
-        set_row_address(row_pair);
 
         // Shift one row-pair (64 columns)
         for (int x = 0; x < MATRIX_WIDTH; x++) {
@@ -109,14 +108,14 @@ void matrix_refresh_once(void) {
             uint8_t bot_col = framebuffer[bot_y][x];
 
             // Top half
-            gpio_put(PIN_R1, (top_col & 0x1) ? 1 : 0);
-            gpio_put(PIN_G1, (top_col & 0x2) ? 1 : 0);
-            gpio_put(PIN_B1, (top_col & 0x4) ? 1 : 0);
+            gpio_put(PIN_R1, (top_col >> 0) ? 1 : 0);
+            gpio_put(PIN_G1, (top_col >> 1) ? 1 : 0);
+            gpio_put(PIN_B1, (top_col >> 2) ? 1 : 0);
 
             // Bottom half
-            gpio_put(PIN_R2, (bot_col & 0x1) ? 1 : 0);
-            gpio_put(PIN_G2, (bot_col & 0x2) ? 1 : 0);
-            gpio_put(PIN_B2, (bot_col & 0x4) ? 1 : 0);
+            gpio_put(PIN_R2, (bot_col >> 0) ? 1 : 0);
+            gpio_put(PIN_G2, (bot_col >> 1) ? 1 : 0);
+            gpio_put(PIN_B2, (bot_col >> 2) ? 1 : 0);
 
             pulse_clk();
         }
@@ -124,9 +123,12 @@ void matrix_refresh_once(void) {
         // Latch the shifted data into outputs
         pulse_lat();
 
+        
+        set_row_address(row_pair);
+
         // Enable LEDs for a short time (this controls overall brightness)
         gpio_put(PIN_OE, 0);
-        sleep_us(100);   // tweak this for brightness / flicker
+        sleep_us(75);   // tweak this for brightness / flicker
         gpio_put(PIN_OE, 1);
     }
 }

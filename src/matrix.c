@@ -72,6 +72,7 @@ void matrix_init(void) {
     gpio_put(PIN_OE, 1);
 
     matrix_clear();
+    printf("Matrix initialized.\n");
 }
 
 void matrix_clear(void) {

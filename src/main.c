@@ -3,6 +3,7 @@
 #include "pico/stdlib.h"
 #include "hardware/xosc.h"
 #include "pico/multicore.h"
+#include "matrix.h"
 
 
 
@@ -15,7 +16,7 @@
 #define SNAKEPART_DIR_LEFT 2
 #define SNAKEPART_DIR_DOWN 3
 
-const uint8_t pixelNums[10] = {
+const uint8_t pixelNums[10][7] = {
     {0b01110, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b01110}, //0
     {0b00100, 0b01100, 0b00100, 0b00100, 0b00100, 0b00100, 0b01110}, //1
     {0b01110, 0b10001, 0b00001, 0b00010, 0b00100, 0b01000, 0b11111}, //2
@@ -174,16 +175,23 @@ void grow(SnakePart* head) {
 }
 
 void dispMessage() {
-
+    for (int i = 0; i < MATRIX_WIDTH; i++) {
+        printf("setting pixel");
+        matrix_set_pixel(i, 0, 0, 1, 0);
+    }
+    while (1) {
+        matrix_refresh_once();
+    }
 }
 
 int main() {
-
+    stdio_init_all();
     
-    init_outputs();
-    init_inputs();
-    init_keypad();
-
+    // init_outputs();
+    // init_inputs();
+    // init_keypad();
+    printf("Hello");
+    matrix_init();
     dispMessage();
     
     

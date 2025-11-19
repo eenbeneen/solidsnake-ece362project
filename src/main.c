@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
@@ -85,7 +86,7 @@ void move(SnakePart* s) {
     
 }
 
-/*
+
 void init_outputs() {
     // fill in
     for(int i = 22; i <26; i++ ) {
@@ -162,7 +163,7 @@ void init_keypad() {
         hw_clear_bits(&pads_bank0_hw->io[pin], PADS_BANK0_GPIO0_ISO_BITS);
     }
 
-}*/
+}
 
 //Adds one part to the tail of the snake
 //head = snake head pointer
@@ -197,10 +198,9 @@ int main() {
     stdio_init_all();
 
     matrix_init();
-
     // Draw a simple pattern: top row green, middle row red, bottom row blue
     for (int x = 0; x < MATRIX_WIDTH; x++) {
-        matrix_set_pixel(x, 0, 0, 1, 0);          // row 0 green
+        matrix_set_pixel(x, 0, 0, 0, 1);          // row 0 green
         matrix_set_pixel(x, 15, 1, 0, 0);         // row 15 red
         matrix_set_pixel(x, 31, 0, 0, 1);         // row 31 blue
     }
@@ -213,3 +213,89 @@ int main() {
     //push
     return 0;
 }
+
+
+// test_matrix.c – standalone diagnostic, ignore matrix.c / matrix.h
+/*
+#include "pico/stdlib.h"
+
+#define PIN_R1   10
+#define PIN_G1   11
+#define PIN_B1   12
+#define PIN_R2   13
+#define PIN_G2   14
+#define PIN_B2   15
+
+#define PIN_A    16
+#define PIN_B    17
+#define PIN_C    18
+#define PIN_D    19
+
+#define PIN_CLK  20
+#define PIN_LAT  21
+#define PIN_OE   26
+
+static inline void set_row_address(int row_pair) {
+    gpio_put(PIN_A, (row_pair >> 0) & 1);
+    gpio_put(PIN_B, (row_pair >> 1) & 1);
+    gpio_put(PIN_C, (row_pair >> 2) & 1);
+    gpio_put(PIN_D, (row_pair >> 3) & 1);
+}
+
+static inline void pulse_clk(void) {
+    gpio_put(PIN_CLK, 1);
+    gpio_put(PIN_CLK, 0);
+}
+
+static inline void pulse_lat(void) {
+    gpio_put(PIN_LAT, 1);
+    sleep_us(50);
+    gpio_put(PIN_LAT, 0);
+}
+
+int main() {
+    stdio_init_all();
+
+    const uint8_t pins[] = {
+        PIN_R1, PIN_G1, PIN_B1,
+        PIN_R2, PIN_G2, PIN_B2,
+        PIN_A, PIN_B, PIN_C, PIN_D,
+        PIN_CLK, PIN_LAT, PIN_OE
+    };
+
+    for (int i = 0; i < (int)(sizeof(pins) / sizeof(pins[0])); i++) {
+        gpio_init(pins[i]);
+        gpio_set_dir(pins[i], GPIO_OUT);
+        gpio_put(pins[i], 0);
+    }
+
+    // Enable output by default (OE active low)
+    gpio_put(PIN_OE, 0);
+
+    while (1) {
+        // SCAN ALL ROW PAIRS, IGNORING FRAMEBUFFER COMPLETELY
+        for (int row_pair = 0; row_pair < 16; row_pair++) {
+            // Select this row pair
+            set_row_address(row_pair);
+
+            // Shift 64 GREEN pixels for both top and bottom
+            for (int x = 0; x < 64; x++) {
+                // PURE GREEN TEST: ONLY G1/G2 HIGH
+                gpio_put(PIN_R1, 1);
+                gpio_put(PIN_G1, 0);
+                gpio_put(PIN_B1, 0);
+
+                gpio_put(PIN_R2, 1);
+                gpio_put(PIN_G2, 0);
+                gpio_put(PIN_B2, 0);
+                pulse_clk();
+            }
+
+            pulse_lat();          // latch this row-pair
+            gpio_put(PIN_OE, 0);
+            sleep_us(50);        // keep it visible a bit
+            gpio_put(PIN_OE, 1);
+        }
+    }
+}
+*/

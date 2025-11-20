@@ -17,21 +17,21 @@
 // gpio 36 is LAT
 // gpio 37 is OE
 
-#define PIN_R1   38
-#define PIN_G1   26
-#define PIN_B1   27
-#define PIN_R2   28
-#define PIN_G2   29
-#define PIN_B2   30
+#define PIN_R1   10
+#define PIN_G1   11
+#define PIN_B1   12
+#define PIN_R2   13
+#define PIN_G2   14
+#define PIN_B2   15
 
-#define PIN_A    31
-#define PIN_B    32
-#define PIN_C    33
-#define PIN_D    34
+#define PIN_A    16
+#define PIN_B    17
+#define PIN_C    18
+#define PIN_D    19
 
-#define PIN_CLK  35
-#define PIN_LAT  36
-#define PIN_OE   37
+#define PIN_CLK  20
+#define PIN_LAT  21
+#define PIN_OE   26
 
 // Simple 3-bit color: bit0=R, bit1=G, bit2=B (1 bit per channel)
 static uint8_t framebuffer[MATRIX_HEIGHT][MATRIX_WIDTH];
@@ -72,11 +72,13 @@ void matrix_init(void) {
     gpio_put(PIN_OE, 1);
 
     matrix_clear();
+
 }
 
 void matrix_clear(void) {
     memset(framebuffer, 0, sizeof(framebuffer));
     matrix_refresh_once();
+    gpio_put(PIN_OE, 0);
 }
 
 void matrix_set_pixel(int x, int y, uint8_t r, uint8_t g, uint8_t b) {
@@ -84,10 +86,7 @@ void matrix_set_pixel(int x, int y, uint8_t r, uint8_t g, uint8_t b) {
         return;
     }
 
-    uint8_t val = 0;
-    if (r) val |= 0x1;
-    if (g) val |= 0x2;
-    if (b) val |= 0x4;
+    uint8_t val = (r ? 1 : 0) | (g ? 0b10 : 0) | (b ? 0b100 : 0);
 
     framebuffer[y][x] = val;
 }
@@ -128,7 +127,7 @@ void matrix_refresh_once(void) {
 
         // Enable LEDs for a short time (this controls overall brightness)
         gpio_put(PIN_OE, 0);
-        sleep_us(75);   // tweak this for brightness / flicker
+        sleep_us(50);   // tweak this for brightness / flicker
         gpio_put(PIN_OE, 1);
     }
 }

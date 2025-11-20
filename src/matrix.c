@@ -2,21 +2,6 @@
 #include "pico/stdlib.h"
 #include "matrix.h"
 
-// Your wiring:
-// gpio 25 is R1
-// gpio 26 is G1
-// gpio 27 is B1
-// gpio 28 is R2
-// gpio 29 is G2
-// gpio 30 is B2
-// gpio 31 is HA (A)
-// gpio 32 is HB (B)
-// gpio 33 is HC (C)
-// gpio 34 is HD (D)
-// gpio 35 is CLK
-// gpio 36 is LAT
-// gpio 37 is OE
-
 #define PIN_R1   10
 #define PIN_G1   11
 #define PIN_B1   12
@@ -46,11 +31,13 @@ static inline void set_row_address(int row_pair) {
 
 static inline void pulse_clk(void) {
     gpio_put(PIN_CLK, 1);
+    sleep_us(1);
     gpio_put(PIN_CLK, 0);
 }
 
 static inline void pulse_lat(void) {
     gpio_put(PIN_LAT, 1);
+    sleep_us(10);
     gpio_put(PIN_LAT, 0);
 }
 

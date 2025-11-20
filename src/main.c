@@ -175,15 +175,23 @@ void grow(SnakePart* head) {
     tail->next = &newTail;
 }
 
-void dispMessage() {
-    for (int i = 0; i < MATRIX_WIDTH; i++) {
-        printf("setting pixel");
-        matrix_set_pixel(i, 0, 0, 1, 0);
-    }
-    while (1) {
-        matrix_refresh_once();
+//x, y = top-left corner of number
+void drawNum(uint8_t number, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
+    if (number > 9)
+        return;
+
+    for (int row = 0; row < 7; row++) {
+        for (int col = 0; col < 5; col++) {
+            if (pixelNums[number][row] & (1 << (4 - col))) {
+                matrix_set_pixel(x + col, y + row, r, g, b);
+            } else {
+                matrix_set_pixel(x + col, y + row, 0, 0, 0);
+            }
+        }
     }
 }
+
+
 
 int main() {
     //stdio_init_all();
@@ -198,12 +206,11 @@ int main() {
     stdio_init_all();
 
     matrix_init();
-    // Draw a simple pattern: top row green, middle row red, bottom row blue
-    for (int x = 0; x < MATRIX_WIDTH; x++) {
-        matrix_set_pixel(x, 0, 0, 0, 1);          // row 0 green
-        matrix_set_pixel(x, 15, 1, 0, 0);         // row 15 red
-        matrix_set_pixel(x, 31, 0, 0, 1);         // row 31 blue
+    // Draw numbers 0-9 in top row
+    for (int i = 0; i < 10; i++) {
+        drawNum(i, i * 6, 0, 1, 0, 0);
     }
+
 
     while (1) {
         matrix_refresh_once();
@@ -213,7 +220,6 @@ int main() {
     //push
     return 0;
 }
-
 
 // test_matrix.c – standalone diagnostic, ignore matrix.c / matrix.h
 /*
@@ -244,6 +250,7 @@ static inline void set_row_address(int row_pair) {
 
 static inline void pulse_clk(void) {
     gpio_put(PIN_CLK, 1);
+    sleep_us(1);
     gpio_put(PIN_CLK, 0);
 }
 
@@ -281,12 +288,12 @@ int main() {
             // Shift 64 GREEN pixels for both top and bottom
             for (int x = 0; x < 64; x++) {
                 // PURE GREEN TEST: ONLY G1/G2 HIGH
-                gpio_put(PIN_R1, 1);
-                gpio_put(PIN_G1, 0);
+                gpio_put(PIN_R1, 0);
+                gpio_put(PIN_G1, 1);
                 gpio_put(PIN_B1, 0);
 
-                gpio_put(PIN_R2, 1);
-                gpio_put(PIN_G2, 0);
+                gpio_put(PIN_R2, 0);
+                gpio_put(PIN_G2, 1);
                 gpio_put(PIN_B2, 0);
                 pulse_clk();
             }

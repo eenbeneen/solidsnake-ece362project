@@ -3,6 +3,23 @@
 
 #include <stdint.h>
 
+
+#define PIN_R1   10
+#define PIN_G1   11
+#define PIN_B1   12
+#define PIN_R2   13
+#define PIN_G2   14
+#define PIN_B2   15
+
+#define PIN_A    16
+#define PIN_B    17
+#define PIN_C    18
+#define PIN_D    19
+
+#define PIN_CLK  20
+#define PIN_LAT  21
+#define PIN_OE   26
+
 #define MATRIX_WIDTH   64
 #define MATRIX_HEIGHT  32
 

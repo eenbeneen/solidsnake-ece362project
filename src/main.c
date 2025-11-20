@@ -191,17 +191,31 @@ void drawNum(uint8_t number, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
     }
 }
 
+void drawFruit(Food food) {
+    for (int row = 0; row < 2; row++) {
+        for (int col = 0; col < 2; col++) {
+            matrix_set_pixel(food.xpos + col, food.ypos + row, 1, 0, 0);
+        }
+    }
+}
 
+void drawSnakePart(SnakePart part) {
+    for (int row = 0; row < 2; row++) {
+        for (int col = 0; col < 2; col++) {
+            matrix_set_pixel(part.xpos + col, part.ypos + row, 0, 1, 0);
+        }
+    }
+}
+
+void drawSnake(SnakePart* head) {
+    SnakePart* current = head;
+    while (current != NULL) {
+        drawSnakePart(*current);
+        current = current->next;
+    }
+}
 
 int main() {
-    //stdio_init_all();
-    
-    // init_outputs();
-    // init_inputs();
-    // init_keypad();
-    //printf("Hello");
-    //matrix_init();
-    //dispMessage();
 
     stdio_init_all();
 

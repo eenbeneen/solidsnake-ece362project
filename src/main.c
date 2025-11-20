@@ -30,9 +30,17 @@ const uint8_t pixelNums[10][7] = {
     {0b01110, 0b10001, 0b10001, 0b01111, 0b00001, 0b00010, 0b01100}  //9
 };
 
+//divide matrix into 8x16 grid for snake game
+//define values: 0 = empty, 1 = snake, 2 = food
+#define GRID_EMPTY = 0
+#define GRID_SNAKE = 1
+#define GRID_FOOD = 2
+uint8_t gameGrid[8][16] = {0};
+
 const char keymap[16] = "DCBA#9630852*741";
 char key = '\0';
 int col = 0;
+bool stateGame = false;
 
 typedef struct SnakePart {
     int xpos;
@@ -191,7 +199,7 @@ void drawNum(uint8_t number, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
     }
 }
 
-void drawFruit(Food food) {
+void drawFood(Food food) {
     for (int row = 0; row < 2; row++) {
         for (int col = 0; col < 2; col++) {
             matrix_set_pixel(food.xpos + col, food.ypos + row, 1, 0, 0);
@@ -224,6 +232,16 @@ int main() {
     for (int i = 0; i < 10; i++) {
         drawNum(i, i * 6, 0, 1, 0, 0);
     }
+
+    //draw food at 10, 0
+    Food food = {5, 20};
+    drawFood(food);
+
+    //draw a snake at 20, 0
+    SnakePart head = {20, 20, SNAKEPART_DIR_RIGHT, NULL};
+    SnakePart tail = {18, 20, SNAKEPART_DIR_RIGHT, NULL};
+    head.next = &tail;
+    drawSnake(&head);
 
 
     while (1) {

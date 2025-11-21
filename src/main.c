@@ -254,7 +254,7 @@ void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
         {0b11111, 0b10000, 0b10000, 0b11110, 0b10000, 0b10000, 0b11111}, //E
     };
 
-    uint8_t* letters[7] = 
+    uint8_t (*letters)[7] = 
         (wordsel == WORD_PLAY) ? play :
         (wordsel == WORD_SPEED) ? speed :
         score;
@@ -265,7 +265,7 @@ void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
                 if (letters[i][row] & (1 << (4 - col))) {
                     matrix_set_pixel(currX + col, y + row, r, g, b);
                 } else {
-                    matrix_set_pixel(x + col, y + row, 0, 0, 0);
+                    matrix_set_pixel(currX + col, y + row, 0, 0, 0);
                 }
             }
         }

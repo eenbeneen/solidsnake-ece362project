@@ -7,7 +7,6 @@
 #include "matrix.h"
 
 
-
 #define X_MAX 31
 #define Y_MAX 31
 #define X_MIN 0
@@ -60,8 +59,8 @@ typedef struct Food {
 
 //Call this when the snake dies
 void die() {
-    //Add restart later
-    exit(0);
+    stateGame = false;
+    drawMenu();
 }
 
 //Rotates snake
@@ -78,22 +77,48 @@ int isTouchingItself(SnakePart* head) {
     return 0;
 }
 
-//Moves snake starting from part s
-void move(SnakePart* s) {
+//Moves snake starting from s
+void updateSnake(SnakePart* s) {
     //Move in appropriate direction
+    //If snake position is at the edge and
+    //you are about to move out stop everything
     switch (s->dir) {
         case SNAKEPART_DIR_RIGHT:
-            s->xpos++;
+            if (s->xpos > 14) {
+                die();
+                return;
+            }
+            gameGrid[s->ypos][++s->xpos] = 1;
             break;
         case SNAKEPART_DIR_UP:
-            s->ypos++;
+            if (s->ypos > 6) {
+                die();
+                return;
+            }
+            gameGrid[++s->ypos][s->xpos] = 1;
             break;
         case SNAKEPART_DIR_LEFT:
-            s->xpos--;
+            if (s->xpos < 1) {
+                die();
+                return;
+            }
+            gameGrid[s->ypos][+--s->xpos] = 1;
             break;
         case SNAKEPART_DIR_DOWN:
+            if (s->ypos < 1) {
+                die();
+                return;
+            }
+            gameGrid[--s->ypos][s->xpos] = 1;
             s->ypos--;
             break;
+        default:
+    }
+
+    //Set other snake parts dir as the same one
+    if (s->next) {
+        s->next->dir = s->dir;
+        updateSnake(s->next);
     }
     
 }
@@ -219,22 +244,6 @@ void drawSnakePart(int x, int y) {
     }
 }
 
-// void drawSnakePart(SnakePart part) {
-//     for (int row = 0; row < 2; row++) {
-//         for (int col = 0; col < 2; col++) {
-//             matrix_set_pixel(part.xpos*4 + col, part.ypos*4 + row, 0, 1, 0);
-//         }
-//     }
-// }
-
-// void drawSnake(SnakePart* head) {
-//     SnakePart* current = head;
-//     while (current != NULL) {
-//         drawSnakePart(*current);
-//         current = current->next;
-//     }
-// }
-
 //Prints a word on the screen based on wordsel value
 //0 - PLAY, 1 - SPEED, 2 - SCORE
 void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
@@ -284,8 +293,8 @@ void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
 void drawMenu() {
     matrix_clear();
     drawWord(WORD_PLAY, 5, 2, 0, 0, 1);
-    drawWord(WORD_SPEED, 5, 12, 0, 0, 1);
-    drawWord(WORD_SCORE, 5, 22, 0, 0, 1);
+    drawWord(WORD_SPEED, 5, 13, 0, 0, 1);
+    drawWord(WORD_SCORE, 5, 23, 0, 0, 1);
     matrix_refresh_once();
 }
 

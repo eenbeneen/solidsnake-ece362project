@@ -230,32 +230,39 @@ void drawSnake(SnakePart* head) {
 //Prints a word on the screen based on wordsel value
 //0 - PLAY, 1 - SPEED, 2 - SCORE
 void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
-    if (wordsel > 2 && wordsel < 1) return;
+    if (wordsel > 2 || wordsel < 1) return;
 
-    uint8_t* letters = (wordsel == WORD_PLAY) ? (uint8_t[5][7]){
+    uint8_t play[5][7] = {
         {0b11110, 0b10001, 0b10001, 0b11110, 0b10000, 0b10000, 0b10000}, //P
         {0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b11111}, //L
         {0b01110, 0b10001, 0b10000, 0b11111, 0b10001, 0b10001, 0b10001}, //A
         {0b10001, 0b01010, 0b01010, 0b00100, 0b00100, 0b00100, 0b00100}, //Y
         {0,0,0,0,0,0,0} //empty
-    } : (wordsel == WORD_SPEED) ? (uint8_t[5][7]){
+    };
+    uint8_t speed[5][7] = {
         {0b01110, 0b10001, 0b10000, 0b01110, 0b00001, 0b10001, 0b01110}, //S
         {0b11110, 0b10001, 0b10001, 0b11110, 0b10000, 0b10000, 0b10000}, //P
         {0b11111, 0b10000, 0b10000, 0b11110, 0b10000, 0b10000, 0b11111}, //E
         {0b11111, 0b10000, 0b10000, 0b11110, 0b10000, 0b10000, 0b11111}, //E
         {0b11110, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b11110}, //D
-    } : (uint8_t[5][7]){
+    };
+    uint8_t score[5][7] = {
         {0b01110, 0b10001, 0b10000, 0b01110, 0b00001, 0b10001, 0b01110}, //S
         {0b01110, 0b10001, 0b10000, 0b10000, 0b10000, 0b10001, 0b01110}, //C
         {0b01110, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b01110}, //O
         {0b11110, 0b10001, 0b10001, 0b11110, 0b10001, 0b10001, 0b10001}, //R
         {0b11111, 0b10000, 0b10000, 0b11110, 0b10000, 0b10000, 0b11111}, //E
     };
+
+    uint8_t* letters[7] = 
+        (wordsel == WORD_PLAY) ? play :
+        (wordsel == WORD_SPEED) ? speed :
+        score;
     int currX = x;
     for (int i = 0; i < 5; i++) {
         for (int row = 0; row < 7; row++) {
             for (int col = 0; col < 5; col++) {
-                if (*(letters + (i * 7) + row) & (1 << (4 - col))) {
+                if (letters[i][row] & (1 << (4 - col))) {
                     matrix_set_pixel(currX + col, y + row, r, g, b);
                 } else {
                     matrix_set_pixel(x + col, y + row, 0, 0, 0);

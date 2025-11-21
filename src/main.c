@@ -230,7 +230,7 @@ void drawSnake(SnakePart* head) {
 //Prints a word on the screen based on wordsel value
 //0 - PLAY, 1 - SPEED, 2 - SCORE
 void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
-    if (wordsel > 2 || wordsel < 1) return;
+    if (wordsel > 2 || wordsel < 0) return;
 
     uint8_t play[5][7] = {
         {0b11110, 0b10001, 0b10001, 0b11110, 0b10000, 0b10000, 0b10000}, //P
@@ -273,33 +273,23 @@ void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
     }
 }
 
+void drawMenu() {
+    drawWord(WORD_PLAY, 5, 2, 1, 1, 0);
+    drawWord(WORD_SPEED, 5, 12, 1, 1, 0);
+    drawWord(WORD_SCORE, 5, 22, 1, 1, 0);
+    matrix_refresh_once();
+}
+
 int main() {
 
     stdio_init_all();
 
     matrix_init();
-    // Draw numbers 0-9 in top row
-    for (int i = 0; i < 10; i++) {
-        drawNum(i, i * 6, 0, 1, 0, 0);
-    }
 
-    //draw food at 10, 0
-    Food food = {5, 20};
-    drawFood(food);
-
-    //draw a snake at 20, 20
-    SnakePart head = {20, 20, SNAKEPART_DIR_RIGHT, NULL};
-    SnakePart tail = {18, 20, SNAKEPART_DIR_RIGHT, NULL};
-    head.next = &tail;
-    drawSnake(&head);
-
-    //draw word at 40, 20
-    drawWord(WORD_SCORE, 30, 20, 1, 0, 0);
-
+    drawMenu();
 
     while (1) {
         matrix_refresh_once();
-        // No sleeps here: we want to refresh as fast as possible
     }
     
     //push

@@ -39,7 +39,7 @@ const uint8_t pixelNums[10][7] = {
 #define GRID_EMPTY = 0
 #define GRID_SNAKE = 1
 #define GRID_FOOD = 2
-uint8_t gameGrid[8][16] = {0};
+int gameGrid[8][16] = {0};
 
 const char keymap[16] = "DCBA#9630852*741";
 char key = '\0';
@@ -67,7 +67,7 @@ void die() {
 //Rotates snake
 //head = snake head pointer
 //goLeft = 0 if going left, 1 if going right
-void rotate(SnakePart* head, int goLeft) {
+void rotate(SnakePart* head, bool goLeft) {
     head->dir = goLeft ? (head->dir + 1)%4 : (head->dir - 1)%4;
 }
 
@@ -203,29 +203,37 @@ void drawNum(uint8_t number, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
     }
 }
 
-void drawFood(Food food) {
+void drawFood(int x, int y) {
     for (int row = 0; row < 2; row++) {
         for (int col = 0; col < 2; col++) {
-            matrix_set_pixel(food.xpos + col, food.ypos + row, 1, 0, 0);
+            matrix_set_pixel(x*4 + 1 + col, y*4 + 1 + row, 1, 0, 0);
         }
     }
 }
 
-void drawSnakePart(SnakePart part) {
+void drawSnakePart(int x, int y) {
     for (int row = 0; row < 2; row++) {
         for (int col = 0; col < 2; col++) {
-            matrix_set_pixel(part.xpos + col, part.ypos + row, 0, 1, 0);
+            matrix_set_pixel(x*4 + 1 + col, y*4 + 1 + row, 0, 1, 0);
         }
     }
 }
 
-void drawSnake(SnakePart* head) {
-    SnakePart* current = head;
-    while (current != NULL) {
-        drawSnakePart(*current);
-        current = current->next;
-    }
-}
+// void drawSnakePart(SnakePart part) {
+//     for (int row = 0; row < 2; row++) {
+//         for (int col = 0; col < 2; col++) {
+//             matrix_set_pixel(part.xpos*4 + col, part.ypos*4 + row, 0, 1, 0);
+//         }
+//     }
+// }
+
+// void drawSnake(SnakePart* head) {
+//     SnakePart* current = head;
+//     while (current != NULL) {
+//         drawSnakePart(*current);
+//         current = current->next;
+//     }
+// }
 
 //Prints a word on the screen based on wordsel value
 //0 - PLAY, 1 - SPEED, 2 - SCORE
@@ -235,7 +243,7 @@ void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
     uint8_t play[5][7] = {
         {0b11110, 0b10001, 0b10001, 0b11110, 0b10000, 0b10000, 0b10000}, //P
         {0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b11111}, //L
-        {0b01110, 0b10001, 0b10000, 0b11111, 0b10001, 0b10001, 0b10001}, //A
+        {0b01110, 0b10001, 0b10001, 0b11111, 0b10001, 0b10001, 0b10001}, //A
         {0b10001, 0b01010, 0b01010, 0b00100, 0b00100, 0b00100, 0b00100}, //Y
         {0,0,0,0,0,0,0} //empty
     };
@@ -274,10 +282,41 @@ void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
 }
 
 void drawMenu() {
-    drawWord(WORD_PLAY, 5, 2, 1, 1, 0);
-    drawWord(WORD_SPEED, 5, 12, 1, 1, 0);
-    drawWord(WORD_SCORE, 5, 22, 1, 1, 0);
+    matrix_clear();
+    drawWord(WORD_PLAY, 5, 2, 0, 0, 1);
+    drawWord(WORD_SPEED, 5, 12, 0, 0, 1);
+    drawWord(WORD_SCORE, 5, 22, 0, 0, 1);
     matrix_refresh_once();
+}
+
+void updateGame() {
+    matrix_clear();
+    for (int x = 0; x < 16; x++) {
+        for (int y = 0; y < 8; y++) {
+            switch(gameGrid[y][x]) {
+                case 1:
+                    drawSnakePart(x, y);
+                    break;
+                case 2:
+                    drawFood(x, y);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    for (int x = 0; x < 64; x++) {
+        if (x == 0 || x == 63) {
+            for (int y = 0; y < 32; y++) {
+                matrix_set_pixel(x, y, 1, 1, 1);
+            }
+        }
+        else {
+            matrix_set_pixel(x, 0, 1, 1, 1);
+            matrix_set_pixel(x, 31, 1, 1, 1);
+        }
+    }
 }
 
 int main() {
@@ -286,7 +325,18 @@ int main() {
 
     matrix_init();
 
-    drawMenu();
+    gameGrid[0][0] = 1;
+    gameGrid[1][0] = 1;
+    gameGrid[4][4] = 2;
+    stateGame = false;
+
+    if (!stateGame) {
+        
+        drawMenu();
+    }
+    else {
+        updateGame();
+    }
 
     while (1) {
         matrix_refresh_once();

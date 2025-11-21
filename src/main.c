@@ -287,7 +287,7 @@ int main() {
     drawSnake(&head);
 
     //draw word at 40, 20
-    drawWord(WORD_PLAY, 40, 20, 1, 0, 0);
+    drawWord(WORD_SCORE, 30, 20, 1, 0, 0);
 
 
     while (1) {

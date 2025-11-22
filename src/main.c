@@ -38,7 +38,7 @@ const uint8_t pixelNums[10][7] = {
 #define GRID_EMPTY = 0
 #define GRID_SNAKE = 1
 #define GRID_FOOD = 2
-int gameGrid[8][16] = {0};
+int gameGrid[8][16] = {};
 
 const char keymap[16] = "DCBA#9630852*741";
 char key = '\0';
@@ -57,10 +57,35 @@ typedef struct Food {
     int ypos;
 } Food;
 
+void die();
+void freeSnake(SnakePart* head);
+void rotate(SnakePart* head, bool goLeft);
+int isTouchingItself(SnakePart* head);
+void updateSnake(SnakePart* s);
+void init_outputs();
+void init_inputs();
+void init_keypad();
+void grow(SnakePart* head);
+void drawNum(uint8_t number, int x, int y, uint8_t r, uint8_t g, uint8_t b);
+void drawFood(int x, int y);
+void drawSnakePart(int x, int y);
+void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b);
+void drawMenu();
+void updateGame();
+
 //Call this when the snake dies
 void die() {
     stateGame = false;
     drawMenu();
+}
+
+void freeSnake(SnakePart* head) {
+    SnakePart* cur = head;
+    while (cur != NULL) {
+        SnakePart* next = cur->next;
+        free(cur);
+        cur = next;
+    }
 }
 
 //Rotates snake
@@ -79,6 +104,14 @@ int isTouchingItself(SnakePart* head) {
 
 //Moves snake starting from s
 void updateSnake(SnakePart* s) {
+    //Update all parts before this one first
+    if (s->next) {
+        s->next->dir = s->dir;
+        updateSnake(s->next);
+    } else {
+        
+        gameGrid[s->ypos][s->xpos] = 0;
+    }
     //Move in appropriate direction
     //If snake position is at the edge and
     //you are about to move out stop everything
@@ -88,38 +121,33 @@ void updateSnake(SnakePart* s) {
                 die();
                 return;
             }
-            gameGrid[s->ypos][++s->xpos] = 1;
+            s->xpos++;
             break;
         case SNAKEPART_DIR_UP:
             if (s->ypos > 6) {
                 die();
                 return;
             }
-            gameGrid[++s->ypos][s->xpos] = 1;
+            s->ypos++;
             break;
         case SNAKEPART_DIR_LEFT:
             if (s->xpos < 1) {
                 die();
                 return;
             }
-            gameGrid[s->ypos][+--s->xpos] = 1;
+            s->xpos++;
             break;
         case SNAKEPART_DIR_DOWN:
             if (s->ypos < 1) {
                 die();
                 return;
             }
-            gameGrid[--s->ypos][s->xpos] = 1;
             s->ypos--;
             break;
-        default:
     }
-
-    //Set other snake parts dir as the same one
-    if (s->next) {
-        s->next->dir = s->dir;
-        updateSnake(s->next);
-    }
+    //Set new position in gameGrid
+    gameGrid[s->ypos][s->xpos] = 1;
+    
     
 }
 
@@ -208,8 +236,12 @@ void grow(SnakePart* head) {
     SnakePart* tail = head;
     while (tail->next != NULL)
         tail = tail->next;
-    SnakePart newTail = {tail->xpos, tail->ypos, tail->dir, NULL};
-    tail->next = &newTail;
+    SnakePart* newTail = malloc(sizeof(SnakePart));
+    newTail->xpos = tail->xpos;
+    newTail->ypos = tail->ypos;
+    newTail->dir = tail->dir;
+    newTail->next = NULL;
+    tail->next = newTail;
 }
 
 //x, y = top-left corner of number
@@ -298,6 +330,30 @@ void drawMenu() {
     matrix_refresh_once();
 }
 
+//Initialize the starting scene of the game and returns head of snake
+void initGame(SnakePart* head) {
+    //First setup the snake
+    head->xpos = 4;
+    head->ypos = 1;
+    head->dir = SNAKEPART_DIR_RIGHT;
+    SnakePart* part1 = malloc(sizeof(SnakePart));
+    part1->xpos = 3;
+    part1->ypos = 1;
+    part1->dir = SNAKEPART_DIR_RIGHT;
+    SnakePart* part2 = malloc(sizeof(SnakePart));
+    part2->xpos = 2;
+    part2->ypos = 1;
+    part2->dir = SNAKEPART_DIR_RIGHT;
+    
+    head->next = part1;
+    part1->next = part2;
+    part2->next = NULL;
+
+    gameGrid[1][4] = 1;
+    gameGrid[1][3] = 1;
+    gameGrid[1][2] = 1;
+}
+
 void updateGame() {
     matrix_clear();
     for (int x = 0; x < 16; x++) {
@@ -326,6 +382,7 @@ void updateGame() {
             matrix_set_pixel(x, 31, 1, 1, 1);
         }
     }
+    matrix_refresh_once();
 }
 
 int main() {
@@ -334,10 +391,10 @@ int main() {
 
     matrix_init();
 
-    gameGrid[0][0] = 1;
-    gameGrid[1][0] = 1;
-    gameGrid[4][4] = 2;
-    stateGame = false;
+    SnakePart* head = malloc(sizeof(SnakePart));
+    initGame(head);
+    stateGame = true;
+    
 
     if (!stateGame) {
         
@@ -346,9 +403,17 @@ int main() {
     else {
         updateGame();
     }
-
-    while (1) {
+    int i = 0;
+    while(1) {
         matrix_refresh_once();
+        if (stateGame) {
+            if (i >= 1000 ) {
+                updateSnake(head);
+                updateGame();
+                i = 0;
+            }
+            i++;
+        }
     }
     
     //push

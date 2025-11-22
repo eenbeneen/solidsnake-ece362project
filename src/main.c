@@ -407,9 +407,9 @@ int main() {
     while(1) {
         matrix_refresh_once();
         if (stateGame) {
-            if (i >= 1000 ) {
-                updateSnake(head);
+            if (i >= 500) {
                 updateGame();
+                updateSnake(head);
                 i = 0;
             }
             i++;

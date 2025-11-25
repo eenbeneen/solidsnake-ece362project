@@ -1,10 +1,12 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/xosc.h"
 #include "pico/multicore.h"
 #include "matrix.h"
+
+#include "pico/time.h"  //for timer
+#include "hardware/gpio.h"
 
 
 #define X_MAX 31

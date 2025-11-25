@@ -6,7 +6,7 @@
 #include "pico/multicore.h"
 #include "matrix.h"
 #include "keypad.h"
-
+#include "pico/rand.h"
 #include "pico/time.h"  //for timer
 #include "hardware/gpio.h"
 
@@ -50,6 +50,8 @@ repeating_timer_t game_timer;
 bool game_tick = false;
 int game_timer_interval = 500;
 
+bool growOnNextUpdate = false;
+
 typedef struct SnakePart {
     int xpos;
     int ypos;
@@ -59,34 +61,31 @@ typedef struct SnakePart {
 
 static SnakePart* head;
 
-typedef struct Food {
-    int xpos;
-    int ypos;
-} Food;
-
-void startGameTimer();
+void startGameTimer(int speed);
+void changeGameSpeed(int speed);
 void game_timer_callback(repeating_timer_t *rt);
 void die();
-void freeSnake(SnakePart* head);
-void rotate(SnakePart* head, bool goLeft);
-int isTouchingItself(SnakePart* head);
+void freeSnake();
+void rotate(bool goLeft);
+int isTouchingItself();
 void updateSnake(SnakePart* s);
 void init_outputs();
 void init_inputs();
 void init_keypad();
-void grow(SnakePart* head);
+void grow();
 void drawNum(uint8_t number, int x, int y, uint8_t r, uint8_t g, uint8_t b);
-void drawFood(int x, int y);
+void drawFruit(int x, int y);
 void drawSnakePart(int x, int y);
 void drawWord(int wordsel, int x, int y, uint8_t r, uint8_t g, uint8_t b);
 void drawMenu();
+void initGame();
 void updateGame();
+void spawnFruit();
 
 //Starts a new timer with speed in ms
 void startGameTimer(int speed) {
-    // Run every 100 ms (example – same as your “200 cycles”)
     add_repeating_timer_ms(
-        speed,                // interval in ms
+        speed,
         game_timer_callback,
         NULL,
         &game_timer
@@ -102,17 +101,17 @@ void changeGameSpeed(int speed) {
 void game_timer_callback(repeating_timer_t *rt) {
     if (stateGame) {
         game_tick = true;
-        return true;
     }
 }
 
 //Call this when the snake dies
 void die() {
+    freeSnake();
     stateGame = false;
     drawMenu();
 }
 
-void freeSnake(SnakePart* head) {
+void freeSnake() {
     SnakePart* cur = head;
     while (cur != NULL) {
         SnakePart* next = cur->next;
@@ -123,14 +122,14 @@ void freeSnake(SnakePart* head) {
 
 //Rotates snake
 //head = snake head pointer
-//goLeft = 0 if going left, 1 if going right
-void rotate(SnakePart* head, bool goLeft) {
+//goLeft = 1 if going left, 0 if going right
+void rotate(bool goLeft) {
     head->dir = goLeft ? (head->dir + 1)%4 : (head->dir + 3)%4;
 }
 
 //Checks if any parts of a snake have the same position as the head
 //head = snake head pointer
-int isTouchingItself(SnakePart* head) {
+int isTouchingItself() {
     //Implement later
     return 0;
 }
@@ -142,43 +141,44 @@ void updateSnake(SnakePart* s) {
         updateSnake(s->next);
         s->next->dir = s->dir;
     } else {
-        
-        gameGrid[s->ypos][s->xpos] = 0;
+        if (!growOnNextUpdate) {
+            gameGrid[s->ypos][s->xpos] = 0;
+        }
+        else {
+            
+            grow();
+            spawnFruit();
+            growOnNextUpdate = false;
+        }
     }
     //Move in appropriate direction
     //If snake position is at the edge and
     //you are about to move out stop everything
     switch (s->dir) {
         case SNAKEPART_DIR_RIGHT:
-            if (s->xpos > 14) {
-                die();
-                return;
-            }
             s->xpos++;
             break;
         case SNAKEPART_DIR_UP:
-            if (s->ypos < 1) {
-                die();
-                return;
-            }
             s->ypos--;
             break;
         case SNAKEPART_DIR_LEFT:
-            if (s->xpos < 1) {
-                die();
-                return;
-            }
             s->xpos--;
             break;
         case SNAKEPART_DIR_DOWN:
-            if (s->ypos > 6) {
-                die();
-                return;
-            }
             s->ypos++;
             break;
     }
+    //Check if out of bounds
+    if (s->ypos > 7 || s->ypos < 0 || s->xpos > 15 || s->xpos < 0) {
+        die();
+        return;
+    }
+
+
     //Set new position in gameGrid
+    if (gameGrid[s->ypos][s->xpos] == 2) {
+        growOnNextUpdate = true;
+    }
     gameGrid[s->ypos][s->xpos] = 1;
     
     
@@ -265,9 +265,9 @@ void init_keypad() {
 
 //Adds one part to the tail of the snake
 //head = snake head pointer
-void grow(SnakePart* head) {
+void grow() {
     SnakePart* tail = head;
-    while (tail->next != NULL)
+    while (tail->next)
         tail = tail->next;
     SnakePart* newTail = malloc(sizeof(SnakePart));
     newTail->xpos = tail->xpos;
@@ -293,7 +293,7 @@ void drawNum(uint8_t number, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
     }
 }
 
-void drawFood(int x, int y) {
+void drawFruit(int x, int y) {
     for (int row = 0; row < 2; row++) {
         for (int col = 0; col < 2; col++) {
             matrix_set_pixel(x*4 + 1 + col, y*4 + 1 + row, 1, 0, 0);
@@ -364,9 +364,10 @@ void drawMenu() {
 }
 
 //Initialize the starting scene of the game and returns head of snake
-void initGame(SnakePart* head) {
+void initGame() {
     memset(gameGrid, 0, sizeof(gameGrid));
     //First setup the snake
+    head = malloc(sizeof(SnakePart));
     head->xpos = 4;
     head->ypos = 1;
     head->dir = SNAKEPART_DIR_RIGHT;
@@ -386,6 +387,8 @@ void initGame(SnakePart* head) {
     gameGrid[1][4] = 1;
     gameGrid[1][3] = 1;
     gameGrid[1][2] = 1;
+
+    spawnFruit();
 }
 
 void updateGame() {
@@ -397,7 +400,7 @@ void updateGame() {
                     drawSnakePart(x, y);
                     break;
                 case 2:
-                    drawFood(x, y);
+                    drawFruit(x, y);
                     break;
                 default:
                     break;
@@ -419,6 +422,22 @@ void updateGame() {
     matrix_refresh_once();
 }
 
+void spawnFruit() {
+    int emptyCoords[128][2] = {0};
+    int index = 0;
+    for (int x = 0; x < 16; x++) {
+        for (int y = 0; y < 8; y++) {
+            if (gameGrid[y][x] == 0) {
+                emptyCoords[index][0] = x;
+                emptyCoords[index][1] = y;
+                index++;
+            }
+        }
+    }
+    int r = get_rand_32() % index;
+    gameGrid[emptyCoords[r][1]][emptyCoords[r][0]] = 2;
+}
+
 int main() {
 
     stdio_init_all();
@@ -426,19 +445,9 @@ int main() {
     keypad_init_timer();
     matrix_init();
     startGameTimer(game_timer_interval);
-
-    head = malloc(sizeof(SnakePart));
-    initGame(head);
+    initGame();
     stateGame = false;
-    
-
-    if (!stateGame) {
-        
-        drawMenu();
-    }
-    else {
-        updateGame();
-    }
+    drawMenu();
 
     while(1) {
 
@@ -452,8 +461,8 @@ int main() {
             int pressed = (ev >> 8) & 1;
             if (pressed) {
                 if (stateGame) {
-                    if (ch == '4') rotate(head, 1);
-                    else if (ch == '6') rotate(head, 0);
+                    if (ch == '4') rotate(1);
+                    else if (ch == '6') rotate(0);
                 }
                 else {
                     initGame(head);
@@ -463,11 +472,9 @@ int main() {
         }
 
         if (game_tick) {
-            
-            game_tick = false;   // consume the tick
-
-            updateGame();        // safe now
-            updateSnake(head);   // safe now
+            game_tick = false;
+            updateGame();
+            updateSnake(head);
         }
         
     }

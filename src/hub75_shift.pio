@@ -4,14 +4,14 @@
 .side_set 1
 
 .wrap_target
-    pull block           ; wait until CPU provides data
-    set x, 63            ; 64 pixels
+    pull block       side 0     ; wait until CPU provides first word for this row
+    set x, 63        side 0     ; 64 pixels
 
 loop:
-    out pins, 6 side 0   ; output next 6 bits, CLK low
-    nop         side 1   ; CLK high
-    nop         side 0   ; CLK low
-    jmp x-- loop         ; repeat 64 times
+    out pins, 6      side 0     ; data valid, CLK low
+    nop              side 1     ; CLK high
+    nop              side 0     ; CLK low
+    jmp x--, loop    side 0     ; next pixel
 
-    irq 0                ; signal "done shifting this row"
+    irq 0            side 0     ; signal "done shifting this row"
 .wrap

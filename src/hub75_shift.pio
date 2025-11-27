@@ -1,17 +1,22 @@
 .program hub75_shift
 ; OUT: 6 data pins (R1,G1,B1,R2,G2,B2)
-; SIDESET: 1 pin (CLK)
+; SIDESET: 1 pin (CLK) - mandatory every instruction
 .side_set 1
 
 .wrap_target
-    pull block       side 0     ; wait until CPU provides first word for this row
-    set x, 63        side 0     ; 64 pixels
+    pull block        side 0     ; sync start-of-row: wait for CPU data
+    set y, 1          side 0     ; two chunks of 32 pixels = 64 total
 
-loop:
-    out pins, 6      side 0     ; data valid, CLK low
-    nop              side 1     ; CLK high
-    nop              side 0     ; CLK low
-    jmp x--, loop    side 0     ; next pixel
+outer:
+    set x, 31         side 0     ; 32 pixels per chunk
 
-    irq 0            side 0     ; signal "done shifting this row"
+inner:
+    out pins, 6       side 0     ; data valid, CLK low
+    nop               side 1     ; CLK high
+    nop               side 0     ; CLK low
+    jmp x--, inner    side 0     ; repeat 32 times
+
+    jmp y--, outer    side 0     ; do second chunk of 32
+
+    irq 0             side 0     ; signal "done shifting this row"
 .wrap

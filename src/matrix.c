@@ -94,8 +94,9 @@ void matrix_init(void) {
     // Deeper TX FIFO
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
 
-    // Safe-ish pixel clock
-    sm_config_set_clkdiv(&c, 8.0f);
+    // was 8.0f
+    sm_config_set_clkdiv(&c, 64.0f);
+
 
     // Init PIO pins / directions
     for (int i = 0; i < 6; i++) pio_gpio_init(g_pio, PIN_R1 + i);

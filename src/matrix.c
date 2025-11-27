@@ -89,14 +89,14 @@ void matrix_init(void) {
     sm_config_set_sideset_pins(&c, PIN_CLK);
 
     // pull threshold = 6 so every `out pins,6` consumes exactly one word’s low 6 bits
-    sm_config_set_out_shift(&c, true, true, 6);
+    sm_config_set_out_shift(&c, true, false, 32);  // shift_right=true, autopull=false
 
 
     // Deeper TX FIFO
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
 
     // was 8.0f
-    sm_config_set_clkdiv(&c, 64.0f);
+    sm_config_set_clkdiv(&c, 32.0f);
 
 
     // Init PIO pins / directions

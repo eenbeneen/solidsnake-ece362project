@@ -88,8 +88,9 @@ void matrix_init(void) {
     sm_config_set_out_pins(&c, PIN_R1, 6);
     sm_config_set_sideset_pins(&c, PIN_CLK);
 
-    // LSB-first output, autopull 32 bits
-    sm_config_set_out_shift(&c, true, true, 32);
+    // pull threshold = 6 so every `out pins,6` consumes exactly one word’s low 6 bits
+    sm_config_set_out_shift(&c, true, true, 6);
+
 
     // Deeper TX FIFO
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
@@ -124,47 +125,46 @@ void matrix_set_pixel(int x, int y, uint8_t r, uint8_t g, uint8_t b) {
 }
 
 void matrix_refresh_once(void) {
+    // For 64x32, 1:16 scan: 16 row-pairs (top+bottom)
     for (int row_pair = 0; row_pair < 16; row_pair++) {
         int top_y = row_pair;
         int bot_y = row_pair + 16;
 
-        // Blank while shifting
+        // Turn off LEDs while we shift data
         gpio_put(PIN_OE, 1);
 
-        // 64 pixels * 6 bits = 384 bits = 12 words
-        uint32_t words[12];
-        memset(words, 0, sizeof(words));
+        // Clear "done" flag for this row
+        pio_interrupt_clear(g_pio, 0);
 
+        // Push exactly 64 pixels worth of 6-bit data.
+        // IMPORTANT: this requires sm_config_set_out_shift(... autopull, threshold=6)
+        // so each OUT pins,6 consumes one pushed word (low 6 bits).
         for (int x = 0; x < MATRIX_WIDTH; x++) {
             uint8_t top_col = framebuffer[top_y][x];
             uint8_t bot_col = framebuffer[bot_y][x];
-            uint8_t w6 = pack6(top_col, bot_col);
-            bitstream_write(words, (uint32_t)(x * 6), w6, 6);
+            uint8_t w6 = pack6(top_col, bot_col);   // [R1 G1 B1 R2 G2 B2] in bits 0..5
+            pio_sm_put_blocking(g_pio, g_sm, (uint32_t)w6);
         }
 
-        // IMPORTANT: handshake with PIO so latch happens after shifting finishes.
-        pio_interrupt_clear(g_pio, 0);
-
-        // Feed exactly 12 words for this row
-        for (int i = 0; i < 12; i++) {
-            pio_sm_put_blocking(g_pio, g_sm, words[i]);
-        }
-
-        // Wait until PIO signals "done shifting 64 pixels"
+        // Wait until PIO signals "finished shifting this row"
         while (!pio_interrupt_get(g_pio, 0)) {
             tight_loop_contents();
         }
         pio_interrupt_clear(g_pio, 0);
 
-        // Latch + address + enable (same structure as your original)
+        // Latch the shifted data into outputs
         pulse_lat();
+
+        // Select which row-pair is active
         set_row_address(row_pair);
 
+        // Enable LEDs for a short time (controls brightness)
         gpio_put(PIN_OE, 0);
-        sleep_us(50);
+        sleep_us(50);   // same as your original
         gpio_put(PIN_OE, 1);
     }
 }
+
 
 
 

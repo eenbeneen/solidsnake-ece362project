@@ -67,7 +67,7 @@ void startGameTimer(int speed);
 void changeGameSpeed(int speed);
 void game_timer_callback(repeating_timer_t *rt);
 void die();
-void freeSnake();
+int countAndFreeSnake();
 void rotate(bool goLeft);
 int isTouchingItself();
 void updateSnake(SnakePart* s);
@@ -109,18 +109,21 @@ void game_timer_callback(repeating_timer_t *rt) {
 
 //Call this when the snake dies
 void die() {
-    freeSnake();
+    highScore = countAndFreeSnake();
     stateGame = false;
     drawMenu();
 }
 
-void freeSnake() {
+int countAndFreeSnake() {
     SnakePart* cur = head;
+    int count = 1;
     while (cur != NULL) {
         SnakePart* next = cur->next;
         free(cur);
         cur = next;
+        count++;
     }
+    return count;
 }
 
 //Rotates snake
@@ -470,7 +473,7 @@ int main() {
     startGameTimer(game_timer_interval);
     initGame();
     stateGame = false;
-    highScore = 122;
+    highScore = 3;
     drawMenu();
 
     while(1) {

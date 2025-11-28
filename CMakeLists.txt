@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-# Pico SDK import (PlatformIO usually sets PICO_SDK_PATH for you;
-# if building manually, you must set the PICO_SDK_PATH env var)
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
 project(solidsnake-ece362project C CXX ASM)
@@ -14,10 +12,9 @@ add_executable(solidsnake-ece362project
     src/main.c
     src/matrix.c
     src/keypad.c
-    # add any other .c files you have here
 )
 
-# --- THIS generates hub75_shift.pio.h from src/hub75_shift.pio ---
+# Generate hub75_shift.pio.h from src/hub75_shift.pio
 pico_generate_pio_header(solidsnake-ece362project
     ${CMAKE_CURRENT_LIST_DIR}/src/hub75_shift.pio
 )

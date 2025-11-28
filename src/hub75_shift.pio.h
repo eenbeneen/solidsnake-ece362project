@@ -13,21 +13,28 @@
 // ----------- //
 
 #define hub75_shift_wrap_target 0
-#define hub75_shift_wrap 2
+#define hub75_shift_wrap 9
 #define hub75_shift_pio_version 0
 
 static const uint16_t hub75_shift_program_instructions[] = {
             //     .wrap_target
-    0x6006, //  0: out    pins, 6         side 0
-    0xb042, //  1: nop                    side 1
-    0xa042, //  2: nop                    side 0
+    0xe041, //  0: set    y, 1            side 0
+    0xe03f, //  1: set    x, 31           side 0
+    0x80a0, //  2: pull   block           side 0
+    0x6006, //  3: out    pins, 6         side 0
+    0x607a, //  4: out    null, 26        side 0
+    0xb042, //  5: nop                    side 1
+    0xa042, //  6: nop                    side 0
+    0x0042, //  7: jmp    x--, 2          side 0
+    0x0081, //  8: jmp    y--, 1          side 0
+    0xc000, //  9: irq    nowait 0        side 0
             //     .wrap
 };
 
 #if !PICO_NO_HARDWARE
 static const struct pio_program hub75_shift_program = {
     .instructions = hub75_shift_program_instructions,
-    .length = 3,
+    .length = 10,
     .origin = -1,
     .pio_version = hub75_shift_pio_version,
 #if PICO_PIO_VERSION > 0

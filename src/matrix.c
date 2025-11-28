@@ -2,6 +2,7 @@
 #include "pico/stdlib.h"
 #include "matrix.h"
 #include "hardware/pio.h"
+#include "hardware/spi.h"
 #include "hub75_shift.pio.h"
 
 #ifndef MATRIX_COMPAT_SHIFT_BUG
@@ -13,6 +14,29 @@ static uint8_t framebuffer[MATRIX_HEIGHT][MATRIX_WIDTH];
 static PIO  g_pio = pio0;
 static uint g_sm  = 0;
 static uint g_off = 0;
+
+void matrix_init_score() {
+    spi_init(spi0, 1000000);  // 1 MHz, plenty fast
+
+    gpio_set_function(PIN_SPI_SCK, GPIO_FUNC_SPI); // SCK
+    gpio_set_function(PIN_SPI_MOSI, GPIO_FUNC_SPI); // MOSI
+    gpio_set_function(PIN_SPI_MISO, GPIO_FUNC_SPI); // MISO
+
+    // Chip select pin
+    gpio_init(PIN_SPI_CS);
+    gpio_set_dir(PIN_SPI_CS, GPIO_OUT);
+    gpio_put(PIN_SPI_CS, 1);
+}
+
+uint8_t matrix_send_score(uint8_t score) {
+    uint8_t rx;
+
+    gpio_put(PIN_SPI_CS, 0);                 // select
+    spi_write_read_blocking(spi0, &score, &rx, 1);
+    gpio_put(PIN_SPI_CS, 1);                 // deselect
+
+    return rx; // whatever came back
+}
 
 static inline void set_row_address(int row_pair) {
     gpio_put(PIN_A, (row_pair >> 0) & 1);
@@ -108,6 +132,8 @@ void matrix_init(void) {
 
     pio_sm_init(g_pio, g_sm, g_off, &c);
     pio_sm_set_enabled(g_pio, g_sm, true);
+
+    matrix_init_score();
 
     matrix_clear();
 }

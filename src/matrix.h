@@ -23,6 +23,13 @@
 #define MATRIX_WIDTH   64
 #define MATRIX_HEIGHT  32
 
+#define PIN_SPI_SCK 27
+#define PIN_SPI_MOSI 28
+#define PIN_SPI_MISO 29
+#define PIN_SPI_CS 30
+
+
+uint8_t matrix_send_score(uint8_t score);
 void matrix_init(void);
 void matrix_clear(void);
 void matrix_set_pixel(int x, int y, uint8_t r, uint8_t g, uint8_t b);

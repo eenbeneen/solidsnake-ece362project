@@ -52,6 +52,8 @@ int game_timer_interval = 500;
 
 bool growOnNextUpdate = false;
 
+int highScore = 3;
+
 typedef struct SnakePart {
     int xpos;
     int ypos;
@@ -81,6 +83,7 @@ void drawMenu();
 void initGame();
 void updateGame();
 void spawnFruit();
+void drawScore(int score, int x, int y, uint8_t r, uint8_t g, uint8_t b);
 
 //Starts a new timer with speed in ms
 void startGameTimer(int speed) {
@@ -360,6 +363,7 @@ void drawMenu() {
     drawWord(WORD_PLAY, 5, 2, 0, 0, 1);
     drawWord(WORD_SPEED, 5, 13, 0, 0, 1);
     drawWord(WORD_SCORE, 5, 23, 0, 0, 1);
+    drawScore(highScore, 40, 23, 1, 0, 0);
     matrix_refresh_once();
 }
 
@@ -438,6 +442,20 @@ void spawnFruit() {
     gameGrid[emptyCoords[r][1]][emptyCoords[r][0]] = 2;
 }
 
+void drawScore(int score, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
+    int hundreds = (score / 100) % 10;
+    int tens = (score / 10) % 10;
+    int ones = score % 10;
+
+    // Draw first digit
+    drawNum(hundreds, x, y, r, g, b);
+
+    // Draw second digit (7 pixels to the right)
+    drawNum(tens, x + 7, y, r, g, b);
+    // Draw third digit (14 pixels to the right)
+    drawNum(ones, x + 14, y, r, g, b);
+}
+
 int main() {
 
     stdio_init_all();
@@ -447,6 +465,7 @@ int main() {
     startGameTimer(game_timer_interval);
     initGame();
     stateGame = false;
+    highScore = 5;
     drawMenu();
 
     while(1) {

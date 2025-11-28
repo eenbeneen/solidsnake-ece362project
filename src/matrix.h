@@ -23,10 +23,10 @@
 #define MATRIX_WIDTH   64
 #define MATRIX_HEIGHT  32
 
-#define PIN_SPI_SCK 27
-#define PIN_SPI_MOSI 28
-#define PIN_SPI_MISO 29
-#define PIN_SPI_CS 30
+#define PIN_SPI_SCK 30
+#define PIN_SPI_MOSI 27
+#define PIN_SPI_MISO 28
+#define PIN_SPI_CS 29
 
 
 uint8_t matrix_send_score(uint8_t score);

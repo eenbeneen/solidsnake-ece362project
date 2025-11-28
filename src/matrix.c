@@ -16,7 +16,7 @@ static uint g_sm  = 0;
 static uint g_off = 0;
 
 void matrix_init_score() {
-    spi_init(spi0, 1000000);  // 1 MHz, plenty fast
+    spi_init(spi1, 1000000);  // 1 MHz, plenty fast
 
     gpio_set_function(PIN_SPI_SCK, GPIO_FUNC_SPI); // SCK
     gpio_set_function(PIN_SPI_MOSI, GPIO_FUNC_SPI); // MOSI
@@ -32,7 +32,7 @@ uint8_t matrix_send_score(uint8_t score) {
     uint8_t rx;
 
     gpio_put(PIN_SPI_CS, 0);                 // select
-    spi_write_read_blocking(spi0, &score, &rx, 1);
+    spi_write_read_blocking(spi1, &score, &rx, 1);
     gpio_put(PIN_SPI_CS, 1);                 // deselect
 
     return rx; // whatever came back

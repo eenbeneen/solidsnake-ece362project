@@ -443,9 +443,14 @@ void spawnFruit() {
 }
 
 void drawScore(int score, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
-    int hundreds = (score / 100) % 10;
-    int tens = (score / 10) % 10;
-    int ones = score % 10;
+
+    //send score to itself
+    uint8_t score2 = matrix_send_score((uint8_t)score);
+
+
+    int hundreds = (score2 / 100) % 10;
+    int tens = (score2 / 10) % 10;
+    int ones = score2 % 10;
 
     // Draw first digit
     drawNum(hundreds, x, y, r, g, b);
@@ -465,7 +470,7 @@ int main() {
     startGameTimer(game_timer_interval);
     initGame();
     stateGame = false;
-    highScore = 5;
+    highScore = 122;
     drawMenu();
 
     while(1) {

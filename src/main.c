@@ -48,7 +48,13 @@ bool stateGame = false;
 
 repeating_timer_t game_timer;
 bool game_tick = false;
-int game_timer_interval = 500;
+
+// Difficulty intervals
+#define SPEED_EASY_MS   500   // A
+#define SPEED_MED_MS    350   // B
+#define SPEED_HARD_MS   200   // C
+
+int game_timer_interval = SPEED_EASY_MS;
 
 bool growOnNextUpdate = false;
 
@@ -104,6 +110,24 @@ void changeGameSpeed(int speed) {
 void game_timer_callback(repeating_timer_t *rt) {
     if (stateGame) {
         game_tick = true;
+    }
+}
+
+// Draw speed blocks
+static void drawSpeedIndicator(void) {
+    const int base_x = 44;  // to the right of speed
+    const int base_y = 15;
+
+    int idx = 0;    // default is easy
+    uint8_t r=0, g=1, b=0;  // easy is green
+    if (game_timer_interval == SPEED_EASY_MS) { idx = 1; r=1; g=1; b=0; }  // yellow
+    if (game_timer_interval == SPEED_HARD_MS) { idx = 2; r=1; g=0; b=0; }  // red
+
+    int sx = base_x + idx * 6;
+    for (int dy = 0; dy < 2; dy++) {
+        for (int dx = 0; dx < 2; dx++) {
+            matrix_set_pixel(sx + dx, base_y + dy, r, g, b);
+        }
     }
 }
 
@@ -367,6 +391,7 @@ void drawMenu() {
     drawWord(WORD_SPEED, 5, 13, 0, 0, 1);
     drawWord(WORD_SCORE, 5, 23, 0, 0, 1);
     drawScore(highScore, 40, 23, 1, 0, 0);
+    drawSpeedIndicator();
     matrix_refresh_once();
 }
 
@@ -492,8 +517,27 @@ int main() {
                     else if (ch == '6') rotate(0);
                 }
                 else {
-                    initGame(head);
-                    stateGame = true;
+                    //initGame(head);
+                    //stateGame = true;
+
+                    // Speed handling
+                    if (ch == 'A') {
+                        game_timer_interval = SPEED_EASY_MS;
+                        changeGameSpeed(game_timer_interval);
+                        drawMenu();
+                    } else if (ch == 'B') {
+                        game_timer_interval = SPEED_MED_MS;
+                        changeGameSpeed(game_timer_interval);
+                        drawMenu();
+                    } else if (ch == 'C') {
+                        game_timer_interval = SPEED_HARD_MS;
+                        changeGameSpeed(game_timer_interval);
+                        drawMenu();
+                    } else {
+                        initGame(head);
+                        stateGame = true;
+                        changeGameSpeed(game_timer_interval);
+                    }
                 }
             }
         }
@@ -506,7 +550,6 @@ int main() {
         
     }
     
-    //push
     return 0;
 }
 

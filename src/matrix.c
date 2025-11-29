@@ -16,7 +16,7 @@ static uint g_sm  = 0;
 static uint g_off = 0;
 
 void matrix_init_score() {
-    spi_init(spi1, 1000000);  // 1 MHz, plenty fast
+    spi_init(spi1, 1000000);  // 1 MHz
 
     gpio_set_function(PIN_SPI_SCK, GPIO_FUNC_SPI); // SCK
     gpio_set_function(PIN_SPI_MOSI, GPIO_FUNC_SPI); // MOSI
@@ -112,7 +112,7 @@ void matrix_init(void) {
     sm_config_set_out_pins(&c, PIN_R1, 6);
     sm_config_set_sideset_pins(&c, PIN_CLK);
 
-    // pull threshold = 6 so every `out pins,6` consumes exactly one word’s low 6 bits
+    // pull threshold
     sm_config_set_out_shift(&c, true, false, 32);  // shift_right=true, autopull=false
 
 
@@ -151,28 +151,25 @@ void matrix_set_pixel(int x, int y, uint8_t r, uint8_t g, uint8_t b) {
 }
 
 void matrix_refresh_once(void) {
-    // For 64x32, 1:16 scan: 16 row-pairs (top+bottom)
     for (int row_pair = 0; row_pair < 16; row_pair++) {
         int top_y = row_pair;
         int bot_y = row_pair + 16;
 
-        // Turn off LEDs while we shift data
+        // Turn off shifting data
         gpio_put(PIN_OE, 1);
 
-        // Clear "done" flag for this row
+        // Clear flag for this row
         pio_interrupt_clear(g_pio, 0);
 
-        // Push exactly 64 pixels worth of 6-bit data.
-        // IMPORTANT: this requires sm_config_set_out_shift(... autopull, threshold=6)
-        // so each OUT pins,6 consumes one pushed word (low 6 bits).
+        // Push 64 pixels of data
         for (int x = 0; x < MATRIX_WIDTH; x++) {
             uint8_t top_col = framebuffer[top_y][x];
             uint8_t bot_col = framebuffer[bot_y][x];
-            uint8_t w6 = pack6(top_col, bot_col);   // [R1 G1 B1 R2 G2 B2] in bits 0..5
+            uint8_t w6 = pack6(top_col, bot_col);   // [R1 G1 B1 R2 G2 B2] in bits 0 to 5
             pio_sm_put_blocking(g_pio, g_sm, (uint32_t)w6);
         }
 
-        // Wait until PIO signals "finished shifting this row"
+        // Wait until PIO signals
         while (!pio_interrupt_get(g_pio, 0)) {
             tight_loop_contents();
         }
@@ -184,9 +181,9 @@ void matrix_refresh_once(void) {
         // Select which row-pair is active
         set_row_address(row_pair);
 
-        // Enable LEDs for a short time (controls brightness)
+        // enable
         gpio_put(PIN_OE, 0);
-        sleep_us(50);   // same as your original
+        sleep_us(50);
         gpio_put(PIN_OE, 1);
     }
 }

@@ -115,12 +115,12 @@ void game_timer_callback(repeating_timer_t *rt) {
 
 // Draw speed blocks
 static void drawSpeedIndicator(void) {
-    const int base_x = 44;  // to the right of speed
+    const int base_x = 42;  // to the right of speed
     const int base_y = 15;
 
     int idx = 0;    // default is easy
     uint8_t r=0, g=1, b=0;  // easy is green
-    if (game_timer_interval == SPEED_EASY_MS) { idx = 1; r=1; g=1; b=0; }  // yellow
+    if (game_timer_interval == SPEED_MED_MS) { idx = 1; r=1; g=1; b=0; }  // yellow
     if (game_timer_interval == SPEED_HARD_MS) { idx = 2; r=1; g=0; b=0; }  // red
 
     int sx = base_x + idx * 6;

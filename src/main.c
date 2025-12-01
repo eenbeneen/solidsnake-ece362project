@@ -120,7 +120,7 @@ static void drawSpeedIndicator(void) {
 
     int idx = 0;    // default is easy
     uint8_t r=0, g=1, b=0;  // easy is green
-    if (game_timer_interval == SPEED_MED_MS) { idx = 1; r=1; g=1; b=0; }  // yellow
+    if (game_timer_interval == SPEED_MED_MS) { idx = 1; r=0; g=0; b=1; }  // blue
     if (game_timer_interval == SPEED_HARD_MS) { idx = 2; r=1; g=0; b=0; }  // red
 
     int sx = base_x + idx * 6;
@@ -521,19 +521,19 @@ int main() {
                     //stateGame = true;
                     printf("MENU key: '%c' (0x%02X)\n", ch, ch);
                     // Speed handling
-                    if (ch == 'A') {
+                    if (ch == '1') {
                         game_timer_interval = SPEED_EASY_MS;
                         changeGameSpeed(game_timer_interval);
                         drawMenu();
-                    } else if (ch == 'B') {
+                    } else if (ch == '2') {
                         game_timer_interval = SPEED_MED_MS;
                         changeGameSpeed(game_timer_interval);
                         drawMenu();
-                    } else if (ch == 'C') {
+                    } else if (ch == '3') {
                         game_timer_interval = SPEED_HARD_MS;
                         changeGameSpeed(game_timer_interval);
                         drawMenu();
-                    } else {
+                    } else if (ch == 'A') {
                         initGame(head);
                         stateGame = true;
                         changeGameSpeed(game_timer_interval);

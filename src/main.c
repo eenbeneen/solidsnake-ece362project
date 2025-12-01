@@ -502,7 +502,6 @@ int main() {
     drawMenu();
 
     while(1) {
-
         
         matrix_refresh_once();
 
@@ -519,7 +518,6 @@ int main() {
                 else {
                     //initGame(head);
                     //stateGame = true;
-                    printf("MENU key: '%c' (0x%02X)\n", ch, ch);
                     // Speed handling
                     if (ch == '1') {
                         game_timer_interval = SPEED_EASY_MS;
@@ -533,7 +531,7 @@ int main() {
                         game_timer_interval = SPEED_HARD_MS;
                         changeGameSpeed(game_timer_interval);
                         drawMenu();
-                    } else if (ch == 'A') {
+                    } else if (ch == '5') {
                         initGame(head);
                         stateGame = true;
                         changeGameSpeed(game_timer_interval);

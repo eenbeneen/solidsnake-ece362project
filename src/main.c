@@ -519,7 +519,7 @@ int main() {
                 else {
                     //initGame(head);
                     //stateGame = true;
-
+                    printf("MENU key: '%c' (0x%02X)\n", ch, ch);
                     // Speed handling
                     if (ch == 'A') {
                         game_timer_interval = SPEED_EASY_MS;

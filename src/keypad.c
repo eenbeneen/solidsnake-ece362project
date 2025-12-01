@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include "keypad.h"
 
+#define COL_PERIOD_US  2000   // 2ms per column -> ~8ms full scan
+#define SETTLE_US        50   // wait after changing column before reading
+#define DEBOUNCE_SCANS    2   // require stable reading this many scans
+
+static uint8_t stable_cnt[16];
+
 // Global column variable
 int col = -1;
 
@@ -74,6 +80,7 @@ void keypad_init_timer() {
 }
 
 void keypad_drive_column() {
+    /*
     // fill in
     timer_hw->intr = (1u << 0);
     if (col >= 0) {
@@ -90,6 +97,17 @@ void keypad_drive_column() {
     timer_hw->alarm[1] = now + 60;
 
     timer_hw->alarm[0] = now + 25000;
+    */
+   timer_hw->intr = (1u << 0);
+    for (int c = 0; c < 4; c++) gpio_put(6 + c, 0);
+    col = (col + 1) & 3;
+
+    gpio_put(6 + col, 1);
+
+    uint32_t now = timer_hw->timerawl;
+
+    timer_hw->alarm[1] = now + SETTLE_US;
+    timer_hw->alarm[0] = now + COL_PERIOD_US;
 }
 
 uint8_t keypad_read_rows() {
@@ -97,6 +115,7 @@ uint8_t keypad_read_rows() {
 }
 
 void keypad_isr() {
+    /*
     // fill in
     timer_hw->intr = (1u << 1);
 
@@ -105,7 +124,8 @@ void keypad_isr() {
         return;
     }
 
-    uint8_t rowvals = keypad_read_rows();
+    //uint8_t rowvals = keypad_read_rows();
+    uint8_t rowvals = (~keypad_read_rows()) & 0x0F;  // 1 == pressed now
 
 
     for (int row = 0; row < 4; row++) {
@@ -123,5 +143,27 @@ void keypad_isr() {
     }
     
     //timer_hw->alarm[1] = timer_hw->timerawl + 25000;
-    
+    */
+   timer_hw->intr = (1u << 1);
+
+    if (col < 0) return;
+    uint8_t rowvals = (~keypad_read_rows()) & 0x0F;
+
+    for (int row = 0; row < 4; row++) {
+        int ind = col * 4 + row;
+        bool raw_pressed = (rowvals >> row) & 1u;
+
+        if (raw_pressed == state[ind]) {
+            stable_cnt[ind] = 0;
+            continue;
+        }
+
+        if (++stable_cnt[ind] >= DEBOUNCE_SCANS) {
+            stable_cnt[ind] = 0;
+            state[ind] = raw_pressed;
+
+            uint16_t ev = ((uint16_t)raw_pressed << 8) | (uint8_t)keymap[ind];
+            key_push(ev);
+        }
+    }
 }

@@ -67,10 +67,10 @@ void keypad_init_timer() {
     irq_set_enabled(timer_hardware_alarm_get_irq_num(timer_hw, 0), true);
     irq_set_enabled(timer_hardware_alarm_get_irq_num(timer_hw, 1), true);
                      
-    timer_hw->alarm[0] = timer_hw->timerawl + 1000000;
-    timer_hw->alarm[1] = timer_hw->timerawl + 1100000;
+    //timer_hw->alarm[0] = timer_hw->timerawl + 1000000;
+    //timer_hw->alarm[1] = timer_hw->timerawl + 1100000;
 
-
+    timer_hw->alarm[0] = timer_hw->timerawl + 1000;
 }
 
 void keypad_drive_column() {
@@ -80,9 +80,16 @@ void keypad_drive_column() {
         gpio_put(col+6, 0);
     }
     col = (col+1)%4;
-    sio_hw->gpio_togl = 1u << (6 + col);
-    
-    timer_hw->alarm[0] = timer_hw->timerawl + 25000;
+    //sio_hw->gpio_togl = 1u << (6 + col);
+    gpio_put(col + 6, 1);
+
+    //timer_hw->alarm[0] = timer_hw->timerawl + 25000;
+
+    uint32_t now = timer_hw->timerawl;
+
+    timer_hw->alarm[1] = now + 60;
+
+    timer_hw->alarm[0] = now + 25000;
 }
 
 uint8_t keypad_read_rows() {
@@ -94,7 +101,7 @@ void keypad_isr() {
     timer_hw->intr = (1u << 1);
 
     if (col < 0) {
-        timer_hw->alarm[1] = timer_hw->timerawl + 25000;
+        //timer_hw->alarm[1] = timer_hw->timerawl + 25000;
         return;
     }
 
@@ -115,6 +122,6 @@ void keypad_isr() {
         }
     }
     
-    timer_hw->alarm[1] = timer_hw->timerawl + 25000;
+    //timer_hw->alarm[1] = timer_hw->timerawl + 25000;
     
 }

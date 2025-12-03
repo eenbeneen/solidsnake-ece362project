@@ -39,9 +39,9 @@ const uint8_t pixelNums[10][7] = {
 
 //divide matrix into 8x16 grid for snake game
 //define values: 0 = empty, 1 = snake, 2 = food
-#define GRID_EMPTY = 0
-#define GRID_SNAKE = 1
-#define GRID_FOOD = 2
+#define GRID_EMPTY 0
+#define GRID_SNAKE 1
+#define GRID_FRUIT 2
 int gameGrid[8][16] = {0};
 
 bool stateGame = false;
@@ -134,7 +134,6 @@ static void drawSpeedIndicator(void) {
 
 //Call this when the snake dies
 void die() {
-    dieFlag = false;
     highScore = countAndFreeSnake();
     stateGame = false;
     drawMenu();
@@ -142,7 +141,7 @@ void die() {
 
 int countAndFreeSnake() {
     SnakePart* cur = head;
-    int count = 1;
+    int count = 0;
     while (cur != NULL) {
         SnakePart* next = cur->next;
         free(cur);
@@ -158,7 +157,7 @@ int countAndFreeSnake() {
 void rotate(bool goLeft) {
     int newDir = goLeft ? (head->dir + 1)%4 : (head->dir + 3)%4;
     //take the absolute value of the difference
-    int diff = head->next->dir - head->dir;
+    int diff = head->next->dir - newDir;
     diff = (diff < 0) ? (0 - diff) : diff;
     //Making sure snake cant rotate 180 degrees
     if (!(diff == 2)) {
@@ -170,11 +169,12 @@ void rotate(bool goLeft) {
 void updateSnake(SnakePart* s) {
     //Update all parts before this one first
     if (s->next) {
+        gameGrid[s->ypos][s->xpos] = GRID_EMPTY;
         updateSnake(s->next);
         s->next->dir = s->dir;
     } else {
         if (!growOnNextUpdate) {
-            gameGrid[s->ypos][s->xpos] = 0;
+            gameGrid[s->ypos][s->xpos] = GRID_EMPTY;
         }
         else {
             
@@ -206,12 +206,14 @@ void updateSnake(SnakePart* s) {
         return;
     }
 
-
-    //Set new position in gameGrid
-    if (gameGrid[s->ypos][s->xpos] == 2) {
+    //Set grow flag if moving into a fruit
+    if (gameGrid[s->ypos][s->xpos] == GRID_FRUIT) {
         growOnNextUpdate = true;
     }
-    gameGrid[s->ypos][s->xpos] = 1;
+    //Set new position in gameGrid if no overlap
+    if (gameGrid[s->ypos][s->xpos] == GRID_SNAKE)
+        dieFlag = true;
+    gameGrid[s->ypos][s->xpos] = GRID_SNAKE;
     
     
 }
@@ -394,11 +396,11 @@ void drawMenu() {
     drawWord(WORD_SCORE, 5, 23, 0, 0, 1);
     drawScore(highScore, 40, 23, 1, 0, 0);
     drawSpeedIndicator();
-    matrix_refresh_once();
 }
 
 //Initialize the starting scene of the game and returns head of snake
 void initGame() {
+    dieFlag = false;
     memset(gameGrid, 0, sizeof(gameGrid));
     //First setup the snake
     head = malloc(sizeof(SnakePart));
@@ -430,10 +432,10 @@ void updateGame() {
     for (int x = 0; x < 16; x++) {
         for (int y = 0; y < 8; y++) {
             switch(gameGrid[y][x]) {
-                case 1:
+                case GRID_SNAKE:
                     drawSnakePart(x, y);
                     break;
-                case 2:
+                case GRID_FRUIT:
                     drawFruit(x, y);
                     break;
                 default:
@@ -453,7 +455,6 @@ void updateGame() {
             matrix_set_pixel(x, 31, 1, 1, 1);
         }
     }
-    matrix_refresh_once();
 }
 
 void spawnFruit() {
@@ -461,7 +462,7 @@ void spawnFruit() {
     int index = 0;
     for (int x = 0; x < 16; x++) {
         for (int y = 0; y < 8; y++) {
-            if (gameGrid[y][x] == 0) {
+            if (gameGrid[y][x] == GRID_EMPTY) {
                 emptyCoords[index][0] = x;
                 emptyCoords[index][1] = y;
                 index++;
@@ -469,7 +470,7 @@ void spawnFruit() {
         }
     }
     int r = get_rand_32() % index;
-    gameGrid[emptyCoords[r][1]][emptyCoords[r][0]] = 2;
+    gameGrid[emptyCoords[r][1]][emptyCoords[r][0]] = GRID_FRUIT;
 }
 
 void drawScore(int score, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
@@ -497,15 +498,18 @@ int main() {
     keypad_init_pins();
     keypad_init_timer();
     matrix_init();
-    startGameTimer(game_timer_interval);
-    initGame();
     stateGame = false;
+    game_tick = false;
     highScore = 3;
-    drawMenu();
+    startGameTimer(game_timer_interval);
+    sleep_ms(100);
+    while(key_pop()) {
+        drawMenu();
+        matrix_refresh_once();
+    }
 
     while(1) {
         
-        matrix_refresh_once();
 
 
         uint16_t ev = key_pop();
@@ -518,8 +522,6 @@ int main() {
                     else if (ch == '6') rotate(0);
                 }
                 else {
-                    //initGame(head);
-                    //stateGame = true;
                     // Speed handling
                     if (ch == '1') {
                         game_timer_interval = SPEED_EASY_MS;
@@ -534,22 +536,28 @@ int main() {
                         changeGameSpeed(game_timer_interval);
                         drawMenu();
                     } else if (ch == '5') {
-                        initGame(head);
-                        stateGame = true;
+                        initGame();
                         changeGameSpeed(game_timer_interval);
+                        stateGame = true;
                     }
                 }
             }
         }
 
-        if (game_tick) {
+        if (game_tick && stateGame) {
+            
             game_tick = false;
             updateGame();
+            if (dieFlag) {
+                die();
+            }
             updateSnake(head);
             
-            if (dieFlag)
-                die();
+            
         }
+
+        
+        matrix_refresh_once();
         
     }
     

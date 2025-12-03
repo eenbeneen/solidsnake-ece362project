@@ -394,6 +394,16 @@ void drawMenu() {
     drawWord(WORD_PLAY, 5, 2, 0, 0, 1);
     drawWord(WORD_SPEED, 5, 13, 0, 0, 1);
     drawWord(WORD_SCORE, 5, 23, 0, 0, 1);
+    //Draw an arrow pointing to 5
+    for (int i = 0; i < 19; i++) {
+        matrix_set_pixel(33 + i, 5, 0, 0, 1);
+    }
+    matrix_set_pixel(50, 4, 0, 0, 1);
+    matrix_set_pixel(50, 6, 0, 0, 1);
+    matrix_set_pixel(49, 7, 0, 0, 1);
+    matrix_set_pixel(49, 3, 0, 0, 1);
+    drawNum(5, 54, 2, 0, 0, 1);
+
     drawScore(highScore, 40, 23, 1, 0, 0);
     drawSpeedIndicator();
 }
@@ -429,6 +439,7 @@ void initGame() {
 
 void updateGame() {
     matrix_clear();
+    
     for (int x = 0; x < 16; x++) {
         for (int y = 0; y < 8; y++) {
             switch(gameGrid[y][x]) {

@@ -48,6 +48,7 @@ bool stateGame = false;
 
 repeating_timer_t game_timer;
 bool game_tick = false;
+bool dieFlag = false;
 
 // Difficulty intervals
 #define SPEED_EASY_MS   500   // A
@@ -133,6 +134,7 @@ static void drawSpeedIndicator(void) {
 
 //Call this when the snake dies
 void die() {
+    dieFlag = false;
     highScore = countAndFreeSnake();
     stateGame = false;
     drawMenu();
@@ -154,14 +156,14 @@ int countAndFreeSnake() {
 //head = snake head pointer
 //goLeft = 1 if going left, 0 if going right
 void rotate(bool goLeft) {
-    head->dir = goLeft ? (head->dir + 1)%4 : (head->dir + 3)%4;
-}
-
-//Checks if any parts of a snake have the same position as the head
-//head = snake head pointer
-int isTouchingItself() {
-    //Implement later
-    return 0;
+    int newDir = goLeft ? (head->dir + 1)%4 : (head->dir + 3)%4;
+    //take the absolute value of the difference
+    int diff = head->next->dir - head->dir;
+    diff = (diff < 0) ? (0 - diff) : diff;
+    //Making sure snake cant rotate 180 degrees
+    if (!(diff == 2)) {
+        head->dir = newDir;
+    }
 }
 
 //Moves snake starting from s
@@ -200,7 +202,7 @@ void updateSnake(SnakePart* s) {
     }
     //Check if out of bounds
     if (s->ypos > 7 || s->ypos < 0 || s->xpos > 15 || s->xpos < 0) {
-        die();
+        dieFlag = true;
         return;
     }
 
@@ -544,6 +546,9 @@ int main() {
             game_tick = false;
             updateGame();
             updateSnake(head);
+            
+            if (dieFlag)
+                die();
         }
         
     }

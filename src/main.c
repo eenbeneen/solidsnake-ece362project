@@ -116,20 +116,27 @@ void game_timer_callback(repeating_timer_t *rt) {
 
 // Draw speed blocks
 static void drawSpeedIndicator(void) {
-    const int base_x = 42;  // to the right of speed
-    const int base_y = 15;
+    const int base_x = 40;  // to the right of speed
+    const int base_y = 13;
 
     int idx = 0;    // default is easy
     uint8_t r=0, g=1, b=0;  // easy is green
     if (game_timer_interval == SPEED_MED_MS) { idx = 1; r=0; g=0; b=1; }  // blue
     if (game_timer_interval == SPEED_HARD_MS) { idx = 2; r=1; g=0; b=0; }  // red
 
-    int sx = base_x + idx * 6;
-    for (int dy = 0; dy < 2; dy++) {
-        for (int dx = 0; dx < 2; dx++) {
-            matrix_set_pixel(sx + dx, base_y + dy, r, g, b);
+    for (int i = 0; i < 3; i++) {
+        if (idx == i) {
+            drawNum(i + 1, base_x + i * 7, base_y, 0, 1, 0);
+        }
+        else {
+            drawNum(i + 1, base_x + i * 7, base_y, 0, 0, 1);
         }
     }
+    // for (int dy = 0; dy < 2; dy++) {
+    //     for (int dx = 0; dx < 2; dx++) {
+    //         matrix_set_pixel(sx + dx, base_y + dy, r, g, b);
+    //     }
+    // }
 }
 
 //Call this when the snake dies
